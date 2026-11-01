@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="tl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> SikLayag | Pook-Sapot na Gabay sa Pananaliksik (Baitang 11)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Fredoka & Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0284C7',
+                            darkblue: '#1E3A8A',
+                            sky: '#38BDF8',
+                            light: '#F0F9FF',
+                            yellow: '#F59E0B',
+                            amber: '#FBBF24',
+                            coral: '#F43F5E',
+                            mint: '#10B981'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        body: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="bg-pattern text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-sky-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Brand -->
+                <a href="#home" class="flex items-center gap-3 group">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-blue to-brand-sky p-0.5 shadow-md group-hover:scale-105 transition-transform">
+                        <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center overflow-hidden relative">
+                            <!-- Mascot Icon -->
+                            <svg class="w-9 h-9 text-brand-blue" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="236" cy="236" r="130" stroke="currentColor" stroke-width="36"/>
+                                <path d="M 335 335 L 435 435" stroke="currentColor" stroke-width="44" stroke-linecap="round"/>
+                                <path d="M 236 150 C 195 150 165 180 165 220 C 165 245 180 268 198 285 L 198 305 C 198 310 203 315 208 315 L 264 315 C 269 315 274 310 274 305 L 274 285 C 292 268 307 245 307 220 C 307 180 277 150 236 150 Z" fill="#F59E0B"/>
+                                <path d="M 236 120 L 305 150 L 236 180 L 167 150 Z" fill="#1E293B"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-display text-2xl font-bold tracking-wide text-brand-darkblue flex items-center gap-1">
+                            SIK<span class="text-brand-blue">LAYAG</span>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider font-body border border-amber-200">G11 SHS</span>
+                        </span>
+                        <p class="text-xs text-slate-500 font-medium">Gabay sa Pananaliksik para sa Kabataan</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav Links -->
+                <nav class="hidden md:flex items-center gap-1 lg:gap-2">
+                    <a href="#rrl-seeker" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-blue hover:bg-sky-50 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-brand-sky"></i> RRL Seek Engine
+                    </a>
+                    <a href="#kabanata" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-blue hover:bg-sky-50 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-book-bookmark text-brand-yellow"></i> Mga Kabanata
+                    </a>
+                    <a href="#editor" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-blue hover:bg-sky-50 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square text-brand-mint"></i> Interactive Pad
+                    </a>
+                    <a href="#videos" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-blue hover:bg-sky-50 transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-play text-brand-coral"></i> Animated Videos
+                    </a>
+                </nav>
+
+                <!-- CTA Action Button -->
+                <div class="hidden sm:flex items-center gap-3">
+                    <a href="#editor" class="bg-gradient-to-r from-brand-blue to-brand-sky text-white px-5 py-2.5 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rocket"></i> Magsimula Magsulat
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-100 px-4 pt-2 pb-6 space-y-2">
+            <a href="#rrl-seeker" class="block px-4 py-2.5 rounded-xl text-slate-700 font-semibold hover:bg-sky-50"><i class="fa-solid fa-magnifying-glass text-brand-sky mr-2"></i> RRL Seek Engine</a>
+            <a href="#kabanata" class="block px-4 py-2.5 rounded-xl text-slate-700 font-semibold hover:bg-sky-50"><i class="fa-solid fa-book-bookmark text-brand-yellow mr-2"></i> Mga Kabanata & PDFs</a>
+            <a href="#editor" class="block px-4 py-2.5 rounded-xl text-slate-700 font-semibold hover:bg-sky-50"><i class="fa-solid fa-pen-to-square text-brand-mint mr-2"></i> Interactive Writing Pad</a>
+            <a href="#videos" class="block px-4 py-2.5 rounded-xl text-slate-700 font-semibold hover:bg-sky-50"><i class="fa-solid fa-circle-play text-brand-coral mr-2"></i> Animated Lessons</a>
+        </div>
+    </header>
+
+    <!-- Hero Banner Section -->
+    <section id="home" class="relative overflow-hidden py-12 md:py-16 lg:py-20 bg-gradient-to-b from-sky-100/60 via-white to-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Left Text Column -->
+                <div class="lg:col-span-7 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-xs sm:text-sm font-bold mb-6 shadow-sm">
+                        <span class="animate-pulse">✨</span> Pook-Sapot para sa Baitang 11 (English & Filipino Research)
+                    </div>
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-brand-darkblue leading-tight mb-6">
+                        Huwag ma-lula sa Research! <br>
+                        Nandito ang <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-cyan-500 underline decoration-amber-400 decoration-wavy decoration-2">SikLayag</span>
+                    </h1>
+                    <p class="text-slate-600 text-base sm:text-lg mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
+                        Unang beses mo bang gumawa ng pananaliksik? Huwag mag-alala! Tutulungan ka naming maghanap ng RRL, mag-format ng kabanata gamit ang PDF guides, at matuto gamit ang mga fun animated videos.
+                    </p>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                        <a href="#rrl-seeker" class="w-full sm:w-auto px-7 py-3.5 bg-brand-blue hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Maghanap ng RRL Ngayon
+                        </a>
+                        <a href="#videos" class="w-full sm:w-auto px-7 py-3.5 bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 font-bold rounded-2xl shadow-sm hover:border-brand-sky transition-all text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play text-brand-coral"></i> Panoorin ang Lessons
+                        </a>
+                    </div>
+
+                    <!-- Quick Stats Badges -->
+                    <div class="mt-10 pt-8 border-t border-slate-200/80 grid grid-cols-3 gap-4 text-center lg:text-left">
+                        <div>
+                            <p class="font-display text-2xl font-bold text-brand-darkblue">100%</p>
+                            <p class="text-xs text-slate-500 font-medium">Libreng Gabay</p>
+                        </div>
+                        <div>
+                            <p class="font-display text-2xl font-bold text-brand-darkblue">Multi-Engine</p>
+                            <p class="text-xs text-slate-500 font-medium">Google Scholar, ERIC, etc.</p>
+                        </div>
+                        <div>
+                            <p class="font-display text-2xl font-bold text-brand-darkblue">Format PDFs</p>
+                            <p class="text-xs text-slate-500 font-medium">Ready-to-Use Templates</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Visual Banner Card -->
+                <div class="lg:col-span-5 relative">
+                    <div class="relative mx-auto max-w-md lg:max-w-none">
+                        <!-- Graphic Card Stack -->
+                        <div class="bg-gradient-to-br from-brand-blue via-sky-500 to-cyan-400 p-1 rounded-3xl shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-300">
+                            <div class="bg-white p-6 sm:p-8 rounded-[22px]">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-xl">
+                                            💡
+                                        </div>
+                                        <div>
+                                            <h3 class="font-bold text-slate-800">SikLayag Dashboard</h3>
+                                            <p class="text-xs text-slate-400">Pangkat 7 SHS Innovation</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                        Active Student Guide
+                                    </span>
+                                </div>
+
+                                <!-- Feature Highlights List -->
+                                <div class="space-y-3.5">
+                                    <div class="p-3 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-search text-brand-blue text-lg"></i>
+                                            <span class="text-xs font-bold text-slate-700">RRL Redirect & Aggregator</span>
+                                        </div>
+                                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-file-pdf text-amber-600 text-lg"></i>
+                                            <span class="text-xs font-bold text-slate-700">Kabanata 1-5 Format Templates</span>
+                                        </div>
+                                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-video text-brand-coral text-lg"></i>
+                                            <span class="text-xs font-bold text-slate-700">Animated Video Tutorials</span>
+                                        </div>
+                                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-keyboard text-brand-mint text-lg"></i>
+                                            <span class="text-xs font-bold text-slate-700">Live Interactive Writing Pad</span>
+                                        </div>
+                                        <i class="fa-solid fa-check-circle text-emerald-500"></i>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+                                    <span class="text-xs text-slate-500 font-medium">Binuo para sa mas madaling pagsusulat ng pananaliksik!</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 1: RRL Seek Engine -->
+    <section id="rrl-seeker" class="py-16 bg-white border-y border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="bg-sky-100 text-brand-blue font-bold text-xs uppercase px-3 py-1 rounded-full">Core Feature #1</span>
+                <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-brand-darkblue mt-3">
+                    🔍 RRL Seek Engine & Academic Aggregator
+                </h2>
+                <p class="text-slate-600 mt-2 text-base">
+                    Maghanap ng mga kaugnay na pag-aaral sa Semantic Scholar. Suriin ang bawat sanggunian at tiyaking tumutugma ito sa inyong pananaliksik.
+                </p>
+            </div>
+
+            <!-- Search Console Box -->
+            <div class="max-w-4xl mx-auto bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl text-white relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-brand-sky/20 rounded-full blur-3xl"></div>
+
+                <form id="rrl-form" class="relative z-10 space-y-4">
+                    <label for="rrl-query" class="block text-sm font-semibold text-sky-200">
+                        Mga keyword ng iyong pananaliksik
+                    </label>
+                    <div class="relative flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="search" id="rrl-query" required maxlength="300" placeholder="Halimbawa: social media academic performance..." class="w-full pl-11 pr-4 py-3.5 bg-slate-800/90 text-white rounded-2xl border border-slate-700 focus:outline-none focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/50 text-sm sm:text-base placeholder:text-slate-500">
+                        </div>
+                        <button type="submit" class="px-7 py-3.5 bg-brand-blue hover:bg-sky-500 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                            <i class="fa-solid fa-compass"></i> Mag-SEEK Na
+                        </button>
+                    </div>
+
+                    <fieldset class="flex flex-wrap items-end gap-3 pt-1">
+                        <legend class="text-xs text-slate-400 mb-2">Opsyonal na taon ng publikasyon</legend>
+                        <label class="text-xs text-slate-300">
+                            Mula taon
+                            <input id="start-year" type="number" min="1800" max="{{ current_year }}" inputmode="numeric" placeholder="Hal. 2020" class="block w-32 mt-1 px-3 py-2 bg-slate-800/90 text-white rounded-xl border border-slate-700 focus:outline-none focus:border-brand-sky">
+                        </label>
+                        <label class="text-xs text-slate-300">
+                            Hanggang taon
+                            <input id="end-year" type="number" min="1800" max="{{ current_year }}" inputmode="numeric" placeholder="Hal. 2026" class="block w-32 mt-1 px-3 py-2 bg-slate-800/90 text-white rounded-xl border border-slate-700 focus:outline-none focus:border-brand-sky">
+                        </label>
+                        <span class="text-xs text-slate-400 pb-2">Iwanang blangko kung walang filter.</span>
+                    </fieldset>
+
+                    <div class="flex flex-wrap items-center gap-2 pt-2">
+                        <span class="text-xs text-slate-400 mr-2 font-medium">Pinakanaaangkop na resulta mula sa:</span>
+                        <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-blue text-white border border-brand-blue">
+                            Semantic Scholar API
+                        </span>
+                        <span class="text-xs text-slate-400">Hanggang 5 resulta bawat paghahanap.</span>
+                    </div>
+                </form>
+
+                <!-- Search Results Output Container -->
+                <div id="search-results-container" class="mt-8 pt-6 border-t border-slate-800 space-y-4">
+                    <div id="initial-search-state" class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-graduation-cap text-4xl text-slate-600 mb-3"></i>
+                        <p class="text-sm">I-type ang iyong paksa sa itaas para maghanap ng mga kaugnay na journal article.</p>
+                    </div>
+
+                    <div id="loading-state" class="hidden text-center py-8 space-y-3">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-sky border-t-transparent"></div>
+                        <p class="text-xs text-slate-300 font-medium">Naghahanap ng mga kaugnay na pag-aaral sa Semantic Scholar...</p>
+                    </div>
+
+                    <div id="results-list" class="space-y-3 hidden">
+                        <!-- Dynamic Results Injected Here via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 2: Chapter Templates & Interactive Pad -->
+    <section id="kabanata" class="py-16 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="bg-amber-100 text-amber-800 font-bold text-xs uppercase px-3 py-1 rounded-full">Core Feature #2</span>
+                <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-brand-darkblue mt-3">
+                    📁 Mga Format ng Kabanata at PDF Guides
+                </h2>
+                <p class="text-slate-600 mt-2 text-base">
+                    Bawat kabanata ay may malinaw na gabay at nada-download na PDF template para hindi ka mawala sa tamang pormat.
+                </p>
+            </div>
+
+            <!-- Grid of Chapters 1 to 5 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+                <!-- Kabanata 1 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-blue-100 text-brand-blue font-bold flex items-center justify-center font-display text-lg">K1</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Chapter 1</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Ang Suliranin at Kaligiran Nito</h3>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Naglalaman ng Panimula, Layunin ng Pag-aaral, Kahalagahan ng Pag-aaral, at Saklaw at Delimitasyon.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button onclick="downloadPDF('Kabanata_1_Format.pdf')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF Format
+                        </button>
+                        <a href="#editor" onclick="loadTemplateIntoEditor(1)" class="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors">
+                            Magsulat Dito &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Kabanata 2 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center font-display text-lg">K2</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Chapter 2</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Mga Kaugnay na Literatura at Pag-aaral</h3>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Pagsasama-sama ng mga lokal at banyagang literatura at pag-aaral, at Konseptwal na Balangkas.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button onclick="downloadPDF('Kabanata_2_Format.pdf')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF Format
+                        </button>
+                        <a href="#editor" onclick="loadTemplateIntoEditor(2)" class="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors">
+                            Magsulat Dito &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Kabanata 3 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center font-display text-lg">K3</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Chapter 3</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Metodolohiya ng Pananaliksik</h3>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Disenyo ng Pananaliksik, mga Tagatugon (Respondents), Instrumento ng Pananaliksik, at Tratmanto ng Datos.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button onclick="downloadPDF('Kabanata_3_Format.pdf')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF Format
+                        </button>
+                        <a href="#editor" onclick="loadTemplateIntoEditor(3)" class="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors">
+                            Magsulat Dito &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Kabanata 4 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center font-display text-lg">K4</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Chapter 4</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Presentasyon at Interpretasyon ng Datos</h3>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Pagsusuri at pagpapaliwanag sa mga nakalap na datos gamit ang mga talahanayan (tables) o tsart.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button onclick="downloadPDF('Kabanata_4_Format.pdf')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF Format
+                        </button>
+                        <a href="#editor" onclick="loadTemplateIntoEditor(4)" class="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors">
+                            Magsulat Dito &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Kabanata 5 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 font-bold flex items-center justify-center font-display text-lg">K5</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg">Chapter 5</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Lagom, Konklusyon at Rekomendasyon</h3>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Buod ng mga natuklasan, pangkalahatang konklusyon, at mga praktikal na rekomendasyon.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button onclick="downloadPDF('Kabanata_5_Format.pdf')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF Format
+                        </button>
+                        <a href="#editor" onclick="loadTemplateIntoEditor(5)" class="px-3.5 py-2 bg-brand-blue hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors">
+                            Magsulat Dito &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Complete Research Template -->
+                <div class="bg-gradient-to-br from-brand-darkblue to-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-amber-400 text-slate-900 font-bold flex items-center justify-center font-display text-lg">⭐</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 bg-white/10 text-amber-300 rounded-lg">Buong Papel</span>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">Kumpletong Template ng Pananaliksik</h3>
+                        <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                            I-download ang buong pormat mula Pamagating Pahina (Title Page) hanggang sa Talaan ng Sanggunian (APA Bibliography).
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-700/80 flex items-center justify-between">
+                        <button onclick="downloadPDF('Buong_Format_Pananaliksik_Baitang11.pdf')" class="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-download"></i> Download Full Template (.PDF)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Writing Pad Workspace -->
+            <div id="editor" class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                        <span class="font-bold text-sm ml-2 font-display tracking-wide text-sky-300">
+                            📝 Interactive Research Editor (Magsulat Dito Mismo)
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-xs">
+                        <span id="save-status" class="text-emerald-400 flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Auto-saved
+                        </span>
+                        <button onclick="copyEditorText()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Kopyahin
+                        </button>
+                        <button onclick="clearEditor()" class="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-900/70 text-rose-300 rounded-lg transition-colors">
+                            I-reset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[480px]">
+                    <!-- Template Guide Sidebar -->
+                    <div class="lg:col-span-4 bg-slate-50 p-6 border-b lg:border-b-0 lg:border-r border-slate-200 space-y-4">
+                        <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-lightbulb text-amber-500"></i> Pumili ng Format na Magsisimula:
+                        </h4>
+
+                        <div class="space-y-2">
+                            <button onclick="loadTemplateIntoEditor(1)" class="w-full text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-brand-blue text-xs font-semibold text-slate-700 transition-all flex items-center justify-between">
+                                <span>Kabanata 1: Ang Suliranin</span>
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                            <button onclick="loadTemplateIntoEditor(2)" class="w-full text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-brand-blue text-xs font-semibold text-slate-700 transition-all flex items-center justify-between">
+                                <span>Kabanata 2: Kaugnay na Literatura</span>
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                            <button onclick="loadTemplateIntoEditor(3)" class="w-full text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-brand-blue text-xs font-semibold text-slate-700 transition-all flex items-center justify-between">
+                                <span>Kabanata 3: Metodolohiya</span>
+                                <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 space-y-2">
+                            <p class="font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info"></i> Paalala para sa Baitang 11:
+                            </p>
+                            <p class="leading-relaxed">
+                                Siguraduhing sundin ang tamang margin (1 inch pandigrasya), 1.5 line spacing, at Font: Arial o Times New Roman (size 12) kapag inilipat sa MS Word o Google Docs.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Main Text Area -->
+                    <div class="lg:col-span-8 p-6 flex flex-col justify-between">
+                        <div>
+                            <textarea id="live-editor-text" class="w-full h-80 p-4 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent font-mono text-sm leading-relaxed text-slate-800 custom-scrollbar" placeholder="Magsimula nang magsulat ng iyong sulatin dito..."></textarea>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                            <div class="flex items-center gap-4">
+                                <span>Bilang ng Salita (Words): <strong id="word-count" class="text-brand-blue font-bold">0</strong></span>
+                                <span>Karakter: <strong id="char-count" class="text-slate-700 font-bold">0</strong></span>
+                            </div>
+                            <span class="text-slate-400">Pook-Sapot Editor v1.0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section 3: Animated Video Lessons -->
+    <section id="videos" class="py-16 bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="bg-rose-100 text-rose-800 font-bold text-xs uppercase px-3 py-1 rounded-full">Core Feature #3</span>
+                <h2 class="font-display text-3xl sm:text-4xl font-extrabold text-brand-darkblue mt-3">
+                    🎬 Animadong Bidyo sa Pagsulat ng Pananaliksik
+                </h2>
+                <p class="text-slate-600 mt-2 text-base">
+                    Mas madaling matuto kapag may animated visuals! Panoorin ang mga bite-sized video lessons na gawa para sa SHS Grade 11.
+                </p>
+            </div>
+
+            <!-- Video Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Video Card 1 -->
+                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
+                    <div>
+                        <!-- Thumbnail Container -->
+                        <div class="relative bg-slate-900 aspect-video flex items-center justify-center overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-tr from-brand-blue/80 to-brand-sky/60 opacity-90 group-hover:scale-105 transition-transform duration-300"></div>
+                            <!-- Mock Animation Illustration Icon -->
+                            <i class="fa-solid fa-magnifying-glass-chart text-6xl text-white/30 absolute"></i>
+                            <button onclick="openVideoModal('Paano Maghanap at Magsulat ng RRL?', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Matutunan ang mabisang paghahanap ng banyagang literatura at tamang pagsu-summarize gamit ang sariling salita (paraphrasing).')" class="relative z-10 w-16 h-16 rounded-full bg-white text-brand-coral flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-play text-2xl ml-1"></i>
+                            </button>
+                            <span class="absolute bottom-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">04:15 mins</span>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-[11px] font-bold text-brand-blue uppercase tracking-wider">Aralin 1</span>
+                            <h3 class="font-bold text-lg text-slate-800 mt-1 mb-2 group-hover:text-brand-blue transition-colors">
+                                Paano Maghanap at Magsulat ng RRL?
+                            </h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Alamin ang pinakamabilis na paraan sa paghahanap ng kaugnay na literatura sa Google Scholar at ERIC nang hindi nalulula.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-0">
+                        <button onclick="openVideoModal('Paano Maghanap at Magsulat ng RRL?', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Matutunan ang mabisang paghahanap ng banyagang literatura at tamang pagsu-summarize gamit ang sariling salita (paraphrasing).')" class="w-full py-2.5 bg-slate-100 hover:bg-brand-coral hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-play"></i> Panoorin ang Animated Video
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Card 2 -->
+                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
+                    <div>
+                        <!-- Thumbnail Container -->
+                        <div class="relative bg-slate-900 aspect-video flex items-center justify-center overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/80 to-amber-300/60 opacity-90 group-hover:scale-105 transition-transform duration-300"></div>
+                            <i class="fa-solid fa-lightbulb text-6xl text-white/30 absolute"></i>
+                            <button onclick="openVideoModal('Pagpili ng Maganda at Makabuluhang Paksa', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Mga hakbang para makabuo ng paksa na angkop sa kasalukuyang lipunan at abot-kaya ng mga mag-aaral ng Baitang 11.')" class="relative z-10 w-16 h-16 rounded-full bg-white text-brand-coral flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-play text-2xl ml-1"></i>
+                            </button>
+                            <span class="absolute bottom-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">05:30 mins</span>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Aralin 2</span>
+                            <h3 class="font-bold text-lg text-slate-800 mt-1 mb-2 group-hover:text-brand-blue transition-colors">
+                                Pagpili ng Maganda at Makabuluhang Paksa
+                            </h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Nahihirapan ba kayong mag-isip ng research title? Panoorin ang simpleng formula sa pagbuo ng pamagat!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-0">
+                        <button onclick="openVideoModal('Pagpili ng Maganda at Makabuluhang Paksa', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Mga hakbang para makabuo ng paksa na angkop sa kasalukuyang lipunan at abot-kaya ng mga mag-aaral ng Baitang 11.')" class="w-full py-2.5 bg-slate-100 hover:bg-brand-coral hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-play"></i> Panoorin ang Animated Video
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Card 3 -->
+                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
+                    <div>
+                        <!-- Thumbnail Container -->
+                        <div class="relative bg-slate-900 aspect-video flex items-center justify-center overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-tr from-emerald-600/80 to-teal-400/60 opacity-90 group-hover:scale-105 transition-transform duration-300"></div>
+                            <i class="fa-solid fa-quote-right text-6xl text-white/30 absolute"></i>
+                            <button onclick="openVideoModal('APA Citation & Tamang Pag-cite ng Sanggunian', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Iwasan ang Plagiarism! Gabay sa in-text citations at paggawa ng sanggunian sa APA 7th Edition format.')" class="relative z-10 w-16 h-16 rounded-full bg-white text-brand-coral flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-play text-2xl ml-1"></i>
+                            </button>
+                            <span class="absolute bottom-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">03:45 mins</span>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Aralin 3</span>
+                            <h3 class="font-bold text-lg text-slate-800 mt-1 mb-2 group-hover:text-brand-blue transition-colors">
+                                APA Citation & Iwas-Plagiarism Guide
+                            </h3>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Paano ba ang tamang pag-cite ng may-akda? Alamin ang in-text citation at Reference list format.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-0">
+                        <button onclick="openVideoModal('APA Citation & Tamang Pag-cite ng Sanggunian', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'Iwasan ang Plagiarism! Gabay sa in-text citations at paggawa ng sanggunian sa APA 7th Edition format.')" class="w-full py-2.5 bg-slate-100 hover:bg-brand-coral hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-play"></i> Panoorin ang Animated Video
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Player Modal -->
+    <div id="video-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+                <h3 id="modal-title" class="font-bold text-sm sm:text-base font-display text-amber-300">
+                    Animated Lesson Title
+                </h3>
+                <button onclick="closeVideoModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="aspect-video bg-black relative">
+                <!-- Video Placeholder Container -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white bg-slate-900">
+                    <div class="w-16 h-16 rounded-full bg-brand-coral/20 text-brand-coral flex items-center justify-center mb-3 animate-bounce">
+                        <i class="fa-solid fa-film text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-base mb-1">Animadong Bidyo Preview</h4>
+                    <p id="modal-desc" class="text-xs text-slate-400 max-w-md mb-4">
+                        Video lesson description goes here...
+                    </p>
+                    <span class="px-3 py-1 bg-amber-400 text-slate-900 text-xs font-bold rounded-full">
+                        ✨ Animated by SikLayag Team (Pangkat 7)
+                    </span>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 flex items-center justify-between border-t border-slate-200">
+                <span class="text-xs text-slate-500 font-medium">May tanong tungkol sa aralin? Itanong kay Seek-y Chatbot!</span>
+                <button onclick="closeVideoModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl">
+                    Isara
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Chat Assistant Widget ("Ask Seek-y!") -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <!-- Chatbox Container -->
+        <div id="chat-box" class="hidden mb-4 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-96">
+            <!-- Header -->
+            <div class="p-4 bg-gradient-to-r from-brand-blue to-brand-sky text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
+                        🤖
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs font-display">Seek-y (FAQ Research Helper)</h4>
+                        <p class="text-[10px] text-sky-100">Mga sagot mula sa built-in FAQ</p>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="text-white/80 hover:text-white text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs custom-scrollbar bg-slate-50">
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-slate-700 leading-relaxed max-w-[85%]">
+                    Kamusta! Ako si <strong>Seek-y</strong>! 👋 May tanong ka ba tungkol sa RRL, mga kabanata, o sa editor? Itanong mo lang sa akin!
+                </div>
+            </div>
+
+            <!-- Input Box -->
+            <form class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+                <input type="text" id="chat-input" placeholder="Magtanong kay Seek-y..." class="flex-1 px-3 py-2 bg-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                <button type="submit" class="w-8 h-8 rounded-xl bg-brand-blue text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Toggle Button -->
+        <button onclick="toggleChat()" class="w-14 h-14 rounded-full bg-gradient-to-r from-brand-blue to-cyan-500 text-white shadow-xl hover:scale-105 transition-all flex items-center justify-center relative group">
+            <i class="fa-solid fa-comments text-2xl"></i>
+            <span class="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-white animate-pulse"></span>
+        </button>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <span class="font-display text-xl font-bold text-white tracking-wide">
+                        Sik<span class="text-brand-sky">LAYAG</span>
+                    </span>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Isang Inobasyong Pook-Sapot na Gabay Tungo sa Pagsusulat ng Pananaliksik ng mga Mag-aaral ng Baitang 11.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-3">Tampok na Features</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#rrl-seeker" class="hover:text-brand-sky transition-colors">RRL Seek Aggregator</a></li>
+                        <li><a href="#kabanata" class="hover:text-brand-sky transition-colors">Kabanata PDF Templates</a></li>
+                        <li><a href="#editor" class="hover:text-brand-sky transition-colors">Interactive Writing Pad</a></li>
+                        <li><a href="#videos" class="hover:text-brand-sky transition-colors">Animated Tutorials</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-3">Akademikong Search Engines</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="https://scholar.google.com" target="_blank" class="hover:text-brand-sky">Google Scholar</a></li>
+                        <li><a href="https://eric.ed.gov" target="_blank" class="hover:text-brand-sky">ERIC (Education Resources)</a></li>
+                        <li><a href="https://www.researchgate.net" target="_blank" class="hover:text-brand-sky">ResearchGate</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-3">Proyekto Ni</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Mananaliksik mula sa <strong>Pangkat 7 (Grade 11 SHS)</strong>.<br>
+                        Inihanda para sa Inobasyong Akademiko.
+                    </p>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
+                &copy; 2026 SikLayag. Lahat ng karapatan ay nakalaan. Binuo para sa mga Mag-aaral ng Baitang 11.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Global State Variables
+        let currentFilter = 'all';
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Filter Engine Selector
+        function toggleEngineFilter(engine) {
+            currentFilter = engine;
+            document.querySelectorAll('.engine-badge').forEach(btn => {
+                btn.classList.remove('bg-brand-blue', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            const activeBtn = document.getElementById(`btn-engine-${engine}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+                activeBtn.classList.add('bg-brand-blue', 'text-white');
+            }
+        }
+
+        // Kabanata Templates into Editor Loader
+        const templates = {
+            1: `KABANATA 1: ANG SULIRANIN AT KALIGIRAN NITO
+
+1.1 Panimula (Introduction)
+[Isulat dito ang background ng inyong paksa. Bakit mahalaga na pag-aralan ito?]
+
+1.2 Paglalahad ng Suliranin (Statement of the Problem)
+Ang pag-aaral na ito ay naglalayong masagot ang mga sumusunod na katanungan:
+1. Ano ang lebel ng...
+2. Mayroon bang makabuluhang kaugnayan ang...
+
+1.3 Kahalagahan ng Pag-aaral (Significance of the Study)
+- Sa mga Mag-aaral:
+- Sa mga Guro:
+- Sa mga Susunod na Mananaliksik:
+
+1.4 Saklaw at Delimitasyon (Scope and Delimitation)
+[Ilista kung sino ang respondents, saan at kailan gagawin ang pag-aaral]`,
+
+            2: `KABANATA 2: MGA KAUGNAY NA LITERATURA AT PAG-AARAL
+
+2.1 Lokal na Literatura
+[Isulat dito ang mga buod ng artikulo o libro mula sa Pilipinas na may kaugnayan sa inyong paksa]
+
+2.2 Banyagang Literatura
+[Isulat dito ang mga buod ng artikulo mula sa ibang bansa]
+
+2.3 Konseptwal na Balangkas (Conceptual Framework)
+[Input -> Process -> Output Model]`,
+
+            3: `KABANATA 3: METODOLOHIYA NG PANANALIKSIK
+
+3.1 Disenyo ng Pananaliksik (Research Design)
+Ang pag-aaral na ito ay gumamit ng Deskriptibong Paraan (Descriptive Method)...
+
+3.2 Mga Tagatugon (Respondents)
+Ang mga tagatugon ay binubuo ng (hal. 50) mag-aaral ng Baitang 11...
+
+3.3 Instrumento ng Pananaliksik
+Gumamit ang mga mananaliksik ng Survey Questionnaire...`
+        };
+
+        function loadTemplateIntoEditor(chapterNum) {
+            const textarea = document.getElementById('live-editor-text');
+            textarea.value = templates[chapterNum] || '';
+            updateWordCount();
+
+            // Show notification
+            const saveStatus = document.getElementById('save-status');
+            saveStatus.innerHTML = `<i class="fa-solid fa-check text-amber-400"></i> Na-load ang Kabanata ${chapterNum} Template!`;
+            setTimeout(() => {
+                saveStatus.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Auto-saved`;
+            }, 2500);
+        }
+
+        function updateWordCount() {
+            const text = document.getElementById('live-editor-text').value;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+
+            document.getElementById('word-count').innerText = words;
+            document.getElementById('char-count').innerText = chars;
+        }
+
+        function copyEditorText() {
+            const textarea = document.getElementById('live-editor-text');
+            textarea.select();
+            document.execCommand('copy');
+
+            const saveStatus = document.getElementById('save-status');
+            saveStatus.innerHTML = `<i class="fa-solid fa-copy text-amber-300"></i> Na-kopyahin sa Clipboard!`;
+            setTimeout(() => {
+                saveStatus.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Auto-saved`;
+            }, 2000);
+        }
+
+        function clearEditor() {
+            if (confirm("Sigurado ka bang nais mong i-clear ang editor?")) {
+                document.getElementById('live-editor-text').value = '';
+                updateWordCount();
+            }
+        }
+
+        function downloadPDF(filename) {
+            alert(`Salamat sa pag-click! Ang PDF template na "${filename}" ay inihahanda na para ma-download.`);
+        }
+
+        // Video Modal Handler
+        function openVideoModal(title, url, desc) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('video-modal').classList.remove('hidden');
+        }
+
+        function closeVideoModal() {
+            document.getElementById('video-modal').classList.add('hidden');
+        }
+
+        // Chatbot Toggle & Submission
+        function toggleChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.classList.toggle('hidden');
+        }
+
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</body>
+</html>
