@@ -1,5 +1,6 @@
 const EDITOR_STORAGE_KEY = "siklayag.editor.v1";
 let latestSearchId = 0;
+let activeSearch = null;
 
 function setSaveStatus(message, failed = false) {
     const status = document.getElementById("save-status");
@@ -73,17 +74,29 @@ function renderPaper(paper) {
 
     const title = document.createElement("h3");
     title.className = "font-bold text-white text-sm mb-1";
-    title.textContent = paper.title;
+    title.textContent = paper.title || "Title unavailable";
+
+    const abstract = document.createElement("p");
+    abstract.className = "text-sm text-slate-300 leading-relaxed mb-3";
+    abstract.textContent = paper.abstract
+        ? `${paper.abstract.slice(0, 600)}${paper.abstract.length > 600 ? "..." : ""}`
+        : "Abstract unavailable.";
 
     const authors = document.createElement("p");
     authors.className = "text-xs text-slate-400 mb-2";
     authors.textContent = paper.authors?.join(", ") || "Hindi nakalista ang mga may-akda";
 
-    const year = document.createElement("p");
-    year.className = "text-xs text-slate-300 mb-3";
-    year.textContent = paper.year || "Hindi nakalista ang taon ng publikasyon";
+    const details = [];
+    if (paper.year) details.push(String(paper.year));
+    if (paper.venue) details.push(paper.venue);
+    if (Number.isInteger(paper.citation_count)) {
+        details.push(`${paper.citation_count} citations`);
+    }
+    const metadata = document.createElement("p");
+    metadata.className = "text-xs text-slate-300 mb-3";
+    metadata.textContent = details.join(" · ") || "Publication details unavailable.";
 
-    card.append(title, authors, year);
+    card.append(title, authors, abstract, metadata);
     if (safeHttpUrl(paper.url)) {
         card.append(makeSearchLink("Buksan ang papel", paper.url));
     }
@@ -105,47 +118,132 @@ async function handleSearch(event) {
     const query = queryInput.value.trim();
     if (!query) return;
     const searchId = ++latestSearchId;
-    const params = new URLSearchParams({ q: query });
-    const startYear = document.getElementById("start-year").value;
-    const endYear = document.getElementById("end-year").value;
-    if (startYear) params.set("start_year", startYear);
-    if (endYear) params.set("end_year", endYear);
+    activeSearch = {
+        query,
+        startYear: document.getElementById("start-year").value,
+        endYear: document.getElementById("end-year").value,
+        nextOffset: 0,
+    };
 
     const initial = document.getElementById("initial-search-state");
     const loading = document.getElementById("loading-state");
     const results = document.getElementById("results-list");
+    const loadMore = document.getElementById("load-more-results");
     initial.classList.add("hidden");
     results.classList.add("hidden");
     results.replaceChildren();
+    loadMore.classList.add("hidden");
+    loadMore.disabled = false;
     loading.classList.remove("hidden");
 
     try {
+        await loadSearchPage(0, searchId);
+    } catch (error) {
+        if (searchId !== latestSearchId) return;
+        showSearchError(
+            error instanceof TypeError
+                ? new Error("Search is temporarily unavailable.")
+                : error,
+            false,
+        );
+        results.classList.remove("hidden");
+    } finally {
+        if (searchId === latestSearchId) loading.classList.add("hidden");
+    }
+}
+
+async function loadSearchPage(offset, searchId) {
+    const loading = document.getElementById("loading-state");
+    const loadingMessage = document.getElementById("loading-message");
+    const results = document.getElementById("results-list");
+    const loadMore = document.getElementById("load-more-results");
+    const params = new URLSearchParams({
+        q: activeSearch.query,
+        offset: String(offset),
+    });
+    if (activeSearch.startYear) params.set("start_year", activeSearch.startYear);
+    if (activeSearch.endYear) params.set("end_year", activeSearch.endYear);
+
+    loadingMessage.textContent = "Searching Semantic Scholar...";
+    loading.classList.remove("hidden");
+    if (offset > 0) {
+        loadMore.disabled = true;
+        loadMore.textContent = "Loading...";
+    }
+    const queuedMessageTimer = window.setTimeout(() => {
+        if (searchId === latestSearchId) {
+            loadingMessage.textContent = "Search is queued; please wait.";
+        }
+    }, 700);
+
+    try {
         const response = await fetch(`/api/search?${params.toString()}`);
-        const payload = await response.json();
+        let payload;
+        try {
+            payload = await response.json();
+        } catch {
+            throw new Error("Search is temporarily unavailable.");
+        }
         if (!response.ok) {
-            throw new Error(payload.error || "Hindi makumpleto ang paghahanap.");
+            throw new Error(payload.error || "Search is temporarily unavailable.");
+        }
+        if (
+            !Array.isArray(payload.results) ||
+            !Number.isInteger(payload.limit) ||
+            typeof payload.has_more !== "boolean"
+        ) {
+            throw new Error("Search is temporarily unavailable.");
         }
         if (searchId !== latestSearchId) return;
 
-        if (!payload.results.length) {
+        results.querySelectorAll('[role="alert"]').forEach((message) => message.remove());
+        if (offset === 0 && payload.results.length === 0) {
             const empty = document.createElement("p");
             empty.className = "text-sm text-slate-300 text-center py-4";
-            empty.textContent = "Walang nahanap na papel. Subukan ang ibang mga keyword.";
+            empty.textContent = "No papers found for your search.";
             results.append(empty);
         } else {
             payload.results.forEach((paper) => results.append(renderPaper(paper)));
         }
-        results.classList.remove("hidden");
-    } catch (error) {
-        if (searchId !== latestSearchId) return;
-        const message = document.createElement("p");
-        message.className = "text-sm text-rose-300 text-center py-4";
-        message.setAttribute("role", "alert");
-        message.textContent = error.message || "Hindi makumpleto ang paghahanap.";
-        results.append(message);
+        activeSearch.nextOffset = offset + payload.limit;
+        loadMore.classList.toggle("hidden", !payload.has_more);
+        loadMore.textContent = "Load More";
         results.classList.remove("hidden");
     } finally {
-        if (searchId === latestSearchId) loading.classList.add("hidden");
+        window.clearTimeout(queuedMessageTimer);
+        if (searchId === latestSearchId) {
+            loading.classList.add("hidden");
+            loadMore.disabled = false;
+            if (loadMore.textContent === "Loading...") {
+                loadMore.textContent = "Load More";
+            }
+        }
+    }
+}
+
+function showSearchError(error, append) {
+    const results = document.getElementById("results-list");
+    if (!append) results.replaceChildren();
+    const message = document.createElement("p");
+    message.className = "text-sm text-rose-300 text-center py-4";
+    message.setAttribute("role", "alert");
+    message.textContent = error.message || "Search is temporarily unavailable.";
+    results.append(message);
+}
+
+async function handleLoadMore() {
+    if (!activeSearch) return;
+    const searchId = latestSearchId;
+    try {
+        await loadSearchPage(activeSearch.nextOffset, searchId);
+    } catch (error) {
+        if (searchId !== latestSearchId) return;
+        showSearchError(
+            error instanceof TypeError
+                ? new Error("Search is temporarily unavailable.")
+                : error,
+            true,
+        );
     }
 }
 
@@ -217,6 +315,7 @@ function downloadPDF(filename) {
 }
 
 document.getElementById("rrl-form").addEventListener("submit", handleSearch);
+document.getElementById("load-more-results").addEventListener("click", handleLoadMore);
 document.getElementById("live-editor-text").addEventListener("input", updateWordCount);
 document
     .querySelector("#chat-box form")

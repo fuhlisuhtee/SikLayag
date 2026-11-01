@@ -130,10 +130,20 @@ node --check static\app.js
 
 The Flask server calls the Semantic Scholar Academic Graph API so the API key
 is not exposed to browser JavaScript. Searches accept keywords and optional
-publication-year bounds, request up to five results, and cache identical
-searches in the Flask process for five minutes to reduce repeated requests.
-Provider availability and unauthenticated rate limits are controlled by
-Semantic Scholar.
+publication-year bounds, request ten results per page, and cache identical
+search pages in the Flask process for five minutes to reduce repeated requests.
+Paper metadata is normalized when Semantic Scholar omits titles, abstracts,
+authors, publication details, or links. The frontend displays abstracts and
+provides a Load More button rather than fetching all matches at once.
+Provider requests are serialized and spaced at least 1.1 seconds apart to stay
+below the API key's one-request-per-second limit. Identical concurrent cache
+misses are coalesced, and the configured Gunicorn setup uses one worker with
+multiple threads so requests in that deployment share the same limiter.
+
+The limiter and cache are process-local. Keep the app to one instance to
+preserve the provider limit; if deploying multiple instances, use a shared
+rate-limit coordinator such as Redis before scaling out. Provider availability
+and unauthenticated rate limits are controlled by Semantic Scholar.
 
 For hosted deployments, configure `SEMANTIC_SCHOLAR_API_KEY` as a private
 environment variable in the hosting provider's dashboard. Do not upload `.env`

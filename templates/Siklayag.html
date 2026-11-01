@@ -263,7 +263,7 @@
                         <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-blue text-white border border-brand-blue">
                             Semantic Scholar API
                         </span>
-                        <span class="text-xs text-slate-400">Hanggang 5 resulta bawat paghahanap.</span>
+                        <span class="text-xs text-slate-400">10 resulta bawat pahina; mag-load pa para sa susunod.</span>
                     </div>
                 </form>
 
@@ -276,12 +276,15 @@
 
                     <div id="loading-state" class="hidden text-center py-8 space-y-3">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-brand-sky border-t-transparent"></div>
-                        <p class="text-xs text-slate-300 font-medium">Naghahanap ng mga kaugnay na pag-aaral sa Semantic Scholar...</p>
+                        <p id="loading-message" class="text-xs text-slate-300 font-medium">Searching Semantic Scholar...</p>
                     </div>
 
                     <div id="results-list" class="space-y-3 hidden">
                         <!-- Dynamic Results Injected Here via JavaScript -->
                     </div>
+                    <button id="load-more-results" type="button" class="hidden mx-auto px-5 py-2.5 bg-brand-blue hover:bg-sky-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-wait">
+                        Load More
+                    </button>
                 </div>
             </div>
         </div>
