@@ -258,7 +258,7 @@ function appendChatMessage(message, isUser) {
         : "bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-slate-700 leading-relaxed max-w-[85%]";
     if (!isUser) {
         const label = document.createElement("strong");
-        label.textContent = "Seek-y: ";
+        label.textContent = "Seeky: ";
         bubble.append(label);
     }
     bubble.append(document.createTextNode(message));
@@ -287,9 +287,11 @@ async function handleChatSubmit(event) {
         if (!response.ok) {
             throw new Error(payload.error || "Hindi maiproseso ang tanong.");
         }
+        updateChatDisclaimer(payload.language);
         appendChatMessage(payload.answer, false);
+        appendSuggestedQuestions(payload.suggested_questions, payload.language);
     } catch (error) {
-        console.error("Hindi makuha ang sagot mula kay Seek-y.", error);
+        console.error("Hindi makuha ang sagot mula kay Seeky.", error);
         appendChatMessage(
             "Hindi ko maiproseso ang tanong sa ngayon. Pakisubukan muli mamaya.",
             false,
@@ -298,6 +300,46 @@ async function handleChatSubmit(event) {
         if (submitButton) submitButton.disabled = false;
         input.focus();
     }
+}
+
+function updateChatDisclaimer(language) {
+    const disclaimer = document.getElementById("chat-disclaimer");
+    disclaimer.textContent =
+        language === "fil"
+            ? "Maaari pa ring magkamali si Seeky, kaya tiyaking suriin muli ang mahahalagang impormasyon."
+            : "Seeky can still make mistakes, so please double-check important information.";
+}
+
+function appendSuggestedQuestions(questions, language) {
+    if (!Array.isArray(questions) || questions.length === 0) return;
+
+    const messages = document.getElementById("chat-messages");
+    const suggestions = document.createElement("div");
+    suggestions.className = "space-y-2 text-xs";
+    const prompt = document.createElement("p");
+    prompt.className = "text-slate-500";
+    prompt.textContent =
+        language === "fil"
+            ? "Gusto mo pa bang malaman ang tungkol sa?"
+            : "Would you like to know more about?";
+    suggestions.append(prompt);
+
+    questions.forEach((question) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className =
+            "block w-full rounded-xl border border-brand-blue/20 bg-white px-3 py-2 text-left text-brand-blue hover:bg-blue-50";
+        button.textContent = question;
+        button.addEventListener("click", () => {
+            const input = document.getElementById("chat-input");
+            input.value = question;
+            input.form.requestSubmit();
+        });
+        suggestions.append(button);
+    });
+
+    messages.append(suggestions);
+    messages.scrollTop = messages.scrollHeight;
 }
 
 function openVideoModal(title, _url, description) {

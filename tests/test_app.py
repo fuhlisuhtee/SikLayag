@@ -26,6 +26,7 @@ class SikLayagApiTests(unittest.TestCase):
         self.assertIn(b"static/app.js", response.data)
         self.assertIn(b'id="load-more-results"', response.data)
         self.assertIn(b"10 resulta bawat pahina", response.data)
+        self.assertIn(b'id="chat-disclaimer"', response.data)
         self.assertNotIn(b'id="faq"', response.data)
         self.assertNotIn(b'href="#faq"', response.data)
 
@@ -45,6 +46,23 @@ class SikLayagApiTests(unittest.TestCase):
         self.assertEqual(filipino.status_code, 200)
         self.assertEqual(filipino.get_json()["language"], "fil")
         self.assertEqual(filipino.get_json()["match_type"], "keyword")
+        self.assertNotIn("double-check", english.get_json()["answer"])
+        self.assertNotIn("suriin muli", filipino.get_json()["answer"])
+        self.assertIn(
+            "What are the characteristics of qualitative research?",
+            self.client.post(
+                "/api/seeky", json={"question": "what is qualitative research"}
+            ).get_json()["suggested_questions"],
+        )
+
+    def test_seeky_endpoint_handles_greetings_and_farewells(self):
+        greeting = self.client.post("/api/seeky", json={"question": "hello"})
+        farewell = self.client.post("/api/seeky", json={"question": "bye"})
+
+        self.assertEqual(greeting.get_json()["match_type"], "greeting")
+        self.assertIn("I'm Seeky", greeting.get_json()["answer"])
+        self.assertEqual(farewell.get_json()["match_type"], "farewell")
+        self.assertIn("Good luck with your research", farewell.get_json()["answer"])
 
     def test_seeky_endpoint_validates_question(self):
         self.assertEqual(self.client.post("/api/seeky", json={}).status_code, 400)

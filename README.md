@@ -42,16 +42,27 @@ browser with `localStorage`; they are not uploaded or synchronized.
 
 An FAQ-based assistant that matches questions to prepared answers about
 academic research writing and the platform. It supports English and Filipino
-answers and uses exact, weighted keyword/phrase, and fuzzy matching. Seeky
-does not generate answers.
+answers, keyword preprocessing with recognized topic phrases, typo-tolerant
+RapidFuzz matching, curated related-question suggestions, and friendly greeting
+and farewell replies. A persistent chat-footer reminder encourages students to
+double-check information; the reminder is kept separate from FAQ answers.
+Seeky does not generate answers.
 
 ## Technology Stack
 
 - **Backend:** Python, Flask
 - **Frontend:** HTML, CSS, JavaScript
-- **FAQ matching:** Python dictionary and standard-library text matching
+- **FAQ matching:** Prepared Python FAQ entries and RapidFuzz
 - **Academic search:** Semantic Scholar Academic Graph API
 - **Version control:** Git and GitHub
+
+Seeky's matching code is organized under [`seeky/`](./seeky/): preprocessing
+and matching logic are separate from the chat response flow, while bilingual
+FAQ entries live in category modules under [`seeky/faqs/`](./seeky/faqs/).
+Suggested questions are selected from the matched FAQ's category, so adding
+FAQs to a category also extends its related suggestions. The current FAQ text
+is placeholder content for testing; replace it with the approved FAQ material
+when it becomes available.
 
 ## Project Status
 

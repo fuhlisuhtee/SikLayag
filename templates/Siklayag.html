@@ -646,7 +646,7 @@
             </div>
 
             <div class="p-6 bg-slate-50 flex items-center justify-between border-t border-slate-200">
-                <span class="text-xs text-slate-500 font-medium">May tanong tungkol sa aralin? Itanong kay Seek-y Chatbot!</span>
+                <span class="text-xs text-slate-500 font-medium">May tanong tungkol sa aralin? Itanong kay Seeky Chatbot!</span>
                 <button onclick="closeVideoModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl">
                     Isara
                 </button>
@@ -654,7 +654,7 @@
         </div>
     </div>
 
-    <!-- Floating Chat Assistant Widget ("Ask Seek-y!") -->
+    <!-- Floating Chat Assistant Widget ("Ask Seeky!") -->
     <div class="fixed bottom-6 right-6 z-50">
         <!-- Chatbox Container -->
         <div id="chat-box" class="hidden mb-4 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-96">
@@ -665,7 +665,7 @@
                         🤖
                     </div>
                     <div>
-                        <h4 class="font-bold text-xs font-display">Seek-y (FAQ Research Helper)</h4>
+                        <h4 class="font-bold text-xs font-display">Seeky (FAQ Research Helper)</h4>
                         <p class="text-[10px] text-sky-100">Mga sagot mula sa built-in FAQ</p>
                     </div>
                 </div>
@@ -677,13 +677,17 @@
             <!-- Messages Area -->
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs custom-scrollbar bg-slate-50">
                 <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-slate-700 leading-relaxed max-w-[85%]">
-                    Kamusta! Ako si <strong>Seek-y</strong>! 👋 May tanong ka ba tungkol sa RRL, mga kabanata, o sa editor? Itanong mo lang sa akin!
+                    Hey! I'm <strong>Seeky</strong>, your FAQ chatbot, here to help you! Ask me about research writing or SikLayag.
                 </div>
             </div>
 
+            <p id="chat-disclaimer" class="px-3 py-2 bg-slate-100 text-[10px] leading-relaxed text-slate-500">
+                Seeky can still make mistakes, so please double-check important information.
+            </p>
+
             <!-- Input Box -->
             <form class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
-                <input type="text" id="chat-input" placeholder="Magtanong kay Seek-y..." class="flex-1 px-3 py-2 bg-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue">
+                <input type="text" id="chat-input" placeholder="Magtanong kay Seeky..." class="flex-1 px-3 py-2 bg-slate-100 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue">
                 <button type="submit" class="w-8 h-8 rounded-xl bg-brand-blue text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
                     <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
