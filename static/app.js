@@ -1,6 +1,11 @@
 const EDITOR_STORAGE_KEY = "siklayag.editor.v1";
 let latestSearchId = 0;
 let activeSearch = null;
+let searchCooldownTimer = null;
+let searchRequestInFlight = false;
+let consecutiveBusyResponses = 0;
+const SEARCH_BUSY_COOLDOWN_BASE_SECONDS = 5;
+const SEARCH_BUSY_COOLDOWN_MAX_SECONDS = 30;
 
 function setSaveStatus(message, failed = false) {
     const status = document.getElementById("save-status");
@@ -67,6 +72,155 @@ function makeSearchLink(label, url) {
     return link;
 }
 
+async function copyTextToClipboard(text, html = "") {
+    if (navigator.clipboard) {
+        if (
+            html &&
+            navigator.clipboard.write &&
+            typeof ClipboardItem !== "undefined"
+        ) {
+            try {
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        "text/html": new Blob([html], { type: "text/html" }),
+                        "text/plain": new Blob([text], { type: "text/plain" }),
+                    }),
+                ]);
+                return;
+            } catch (error) {
+                console.warn("Rich-text clipboard unavailable; trying plain text.", error);
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            return;
+        } catch (error) {
+            console.warn("Clipboard API unavailable; trying browser copy fallback.", error);
+        }
+    }
+
+    const temporaryInput = document.createElement("textarea");
+    temporaryInput.value = text;
+    temporaryInput.setAttribute("readonly", "");
+    temporaryInput.style.position = "fixed";
+    temporaryInput.style.opacity = "0";
+    document.body.append(temporaryInput);
+    temporaryInput.focus();
+    temporaryInput.select();
+    let copied;
+    try {
+        copied = document.execCommand("copy");
+    } finally {
+        temporaryInput.remove();
+    }
+    if (!copied) throw new Error("Clipboard copy is unavailable.");
+}
+
+function makeCitationButton(label, type, tools, citation) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+        "px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold rounded-lg transition-colors";
+    button.textContent = label;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", () => {
+        tools.querySelectorAll("[data-citation-type]").forEach((option) => {
+            option.setAttribute("aria-pressed", String(option === button));
+        });
+        const panel = tools.querySelector("[data-citation-panel]");
+        panel.hidden = false;
+        panel.classList.remove("hidden");
+        panel.querySelector("[data-citation-preview]").textContent = citation;
+        panel.dataset.selectedCitation = type;
+        panel.querySelector("[data-copy-citation]").disabled = !citation;
+        const feedback = panel.querySelector("[data-citation-feedback]");
+        feedback.textContent =
+            "Double-check this citation; source metadata may be incomplete.";
+        feedback.classList.remove("text-emerald-300", "text-rose-300");
+        feedback.classList.add("text-slate-400");
+    });
+    button.setAttribute("data-citation-type", type);
+    button.dataset.citationLabel = label;
+    return button;
+}
+
+function makeCitationTools(paper) {
+    const citations = paper.citations || {};
+    const tools = document.createElement("div");
+    tools.className =
+        "mt-2 pt-2 border-t border-slate-700 space-y-2";
+
+    const options = document.createElement("div");
+    options.className = "flex flex-wrap items-center gap-2";
+    const label = document.createElement("span");
+    label.className = "text-xs text-slate-400";
+    label.textContent = "APA 7:";
+    options.append(
+        label,
+        makeCitationButton("Full reference", "reference", tools, citations.reference || ""),
+        makeCitationButton("Narrative", "narrative", tools, citations.narrative || ""),
+        makeCitationButton(
+            "Parenthetical",
+            "parenthetical",
+            tools,
+            citations.parenthetical || "",
+        ),
+    );
+
+    const preview = document.createElement("div");
+    preview.className = "hidden rounded-lg bg-slate-900 p-2 space-y-1.5";
+    preview.hidden = true;
+    preview.setAttribute("data-citation-panel", "");
+    const previewText = document.createElement("p");
+    previewText.className = "text-xs text-slate-200 leading-snug break-words";
+    previewText.setAttribute("data-citation-preview", "");
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className =
+        "px-2.5 py-1 bg-brand-blue hover:bg-sky-500 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50";
+    copyButton.textContent = "Copy citation";
+    copyButton.setAttribute("data-copy-citation", "");
+    const disclaimer = document.createElement("p");
+    disclaimer.className = "text-[10px] leading-tight text-slate-400";
+    disclaimer.textContent =
+        "Double-check this citation; source metadata may be incomplete.";
+    disclaimer.setAttribute("role", "status");
+    disclaimer.setAttribute("data-citation-feedback", "");
+    copyButton.addEventListener("click", async () => {
+        try {
+            const referenceHtml =
+                preview.dataset.selectedCitation === "reference"
+                    ? citations.reference_html || ""
+                    : "";
+            await copyTextToClipboard(previewText.textContent, referenceHtml);
+            const selectedButton = Array.from(
+                tools.querySelectorAll("[data-citation-type]"),
+            )
+                .find(
+                    (button) =>
+                        button.dataset.citationType ===
+                        preview.dataset.selectedCitation,
+                );
+            disclaimer.textContent = `${selectedButton.dataset.citationLabel} copied successfully.`;
+            disclaimer.classList.remove("text-slate-400", "text-rose-300");
+            disclaimer.classList.add("text-emerald-300");
+        } catch (error) {
+            console.error("Hindi makopya ang citation.", error);
+            disclaimer.textContent =
+                "Copy unavailable; please select and copy the citation manually.";
+            disclaimer.classList.remove("text-emerald-300", "text-slate-400");
+            disclaimer.classList.add("text-rose-300");
+        }
+    });
+    const copyActions = document.createElement("div");
+    copyActions.className = "flex flex-wrap items-center gap-x-2 gap-y-1";
+    copyActions.append(copyButton, disclaimer);
+    preview.append(previewText, copyActions);
+    tools.append(options, preview);
+    return tools;
+}
+
 function renderPaper(paper) {
     const card = document.createElement("article");
     card.className =
@@ -89,6 +243,9 @@ function renderPaper(paper) {
     const details = [];
     if (paper.year) details.push(String(paper.year));
     if (paper.venue) details.push(paper.venue);
+    if (paper.publication_types?.length) {
+        details.push(paper.publication_types.join(", "));
+    }
     if (Number.isInteger(paper.citation_count)) {
         details.push(`${paper.citation_count} citations`);
     }
@@ -100,6 +257,7 @@ function renderPaper(paper) {
     if (safeHttpUrl(paper.url)) {
         card.append(makeSearchLink("Buksan ang papel", paper.url));
     }
+    card.append(makeCitationTools(paper));
     return card;
 }
 
@@ -114,9 +272,17 @@ function safeHttpUrl(value) {
 
 async function handleSearch(event) {
     event.preventDefault();
+    if (searchRequestInFlight || searchCooldownTimer) return;
     const queryInput = document.getElementById("rrl-query");
     const query = queryInput.value.trim();
     if (!query) return;
+    const searchButton = document.getElementById("rrl-search-button");
+    const searchStatus = document.getElementById("search-button-status");
+    searchRequestInFlight = true;
+    searchButton.disabled = true;
+    searchButton.classList.add("opacity-50", "cursor-not-allowed");
+    searchStatus.textContent = "";
+    searchStatus.classList.add("hidden");
     const searchId = ++latestSearchId;
     activeSearch = {
         query,
@@ -140,6 +306,11 @@ async function handleSearch(event) {
         await loadSearchPage(0, searchId);
     } catch (error) {
         if (searchId !== latestSearchId) return;
+        if (error.status === 503) {
+            startSearchCooldown(searchButton, searchStatus, error.retryAfter);
+        } else {
+            searchStatus.classList.add("hidden");
+        }
         showSearchError(
             error instanceof TypeError
                 ? new Error("Search is temporarily unavailable.")
@@ -148,8 +319,54 @@ async function handleSearch(event) {
         );
         results.classList.remove("hidden");
     } finally {
-        if (searchId === latestSearchId) loading.classList.add("hidden");
+        if (searchId === latestSearchId) {
+            loading.classList.add("hidden");
+            if (!searchCooldownTimer) {
+                searchButton.disabled = false;
+                searchButton.classList.remove("opacity-50", "cursor-not-allowed");
+                searchStatus.classList.add("hidden");
+                searchStatus.textContent = "";
+            }
+            searchRequestInFlight = false;
+        }
     }
+}
+
+function startSearchCooldown(button, status, retryAfter = null) {
+    const backoffSeconds = Math.min(
+        SEARCH_BUSY_COOLDOWN_BASE_SECONDS * 2 ** consecutiveBusyResponses,
+        SEARCH_BUSY_COOLDOWN_MAX_SECONDS,
+    );
+    consecutiveBusyResponses += 1;
+    const providerRetrySeconds = Number(retryAfter);
+    const cooldownSeconds = Math.max(
+        backoffSeconds,
+        Number.isFinite(providerRetrySeconds) && providerRetrySeconds > 0
+            ? providerRetrySeconds
+            : 0,
+    );
+    const expiresAt = Date.now() + cooldownSeconds * 1000;
+    status.classList.remove("hidden");
+    button.disabled = true;
+    if (searchCooldownTimer) window.clearInterval(searchCooldownTimer);
+
+    const updateCooldown = () => {
+        const remaining = Math.ceil((expiresAt - Date.now()) / 1000);
+        if (remaining <= 0) {
+            window.clearInterval(searchCooldownTimer);
+            searchCooldownTimer = null;
+            button.disabled = false;
+            button.classList.remove("opacity-50", "cursor-not-allowed");
+            status.classList.add("hidden");
+            status.textContent = "";
+            return;
+        }
+        status.textContent =
+            `The search service is receiving too many requests. Please wait ${remaining}s before trying again.`;
+    };
+
+    updateCooldown();
+    searchCooldownTimer = window.setInterval(updateCooldown, 250);
 }
 
 async function loadSearchPage(offset, searchId) {
@@ -185,7 +402,12 @@ async function loadSearchPage(offset, searchId) {
             throw new Error("Search is temporarily unavailable.");
         }
         if (!response.ok) {
-            throw new Error(payload.error || "Search is temporarily unavailable.");
+            const error = new Error(
+                payload.error || "Search is temporarily unavailable.",
+            );
+            error.status = response.status;
+            error.retryAfter = response.headers.get("Retry-After");
+            throw error;
         }
         if (
             !Array.isArray(payload.results) ||
@@ -195,6 +417,7 @@ async function loadSearchPage(offset, searchId) {
             throw new Error("Search is temporarily unavailable.");
         }
         if (searchId !== latestSearchId) return;
+        if (offset === 0) consecutiveBusyResponses = 0;
 
         results.querySelectorAll('[role="alert"]').forEach((message) => message.remove());
         if (offset === 0 && payload.results.length === 0) {

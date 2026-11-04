@@ -25,6 +25,8 @@ class SikLayagApiTests(unittest.TestCase):
         self.assertIn(b"SIK", response.data)
         self.assertIn(b"static/app.js", response.data)
         self.assertIn(b'id="load-more-results"', response.data)
+        self.assertIn(b'id="rrl-search-button"', response.data)
+        self.assertIn(b'id="search-button-status"', response.data)
         self.assertIn(b"10 resulta bawat pahina", response.data)
         self.assertIn(b'id="chat-disclaimer"', response.data)
         self.assertNotIn(b'id="faq"', response.data)
@@ -126,6 +128,22 @@ class SikLayagApiTests(unittest.TestCase):
         )
 
     @patch(
+        "app.urlopen",
+        side_effect=HTTPError(
+            "https://api.semanticscholar.org",
+            429,
+            "Rate limited",
+            {"Retry-After": "12"},
+            None,
+        ),
+    )
+    def test_search_passes_provider_retry_after_to_the_browser(self, _urlopen):
+        response = self.client.get("/api/search?q=research")
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.headers["Retry-After"], "12")
+
+    @patch(
         "app._cached_search",
         return_value={
             "total": 0,
@@ -183,6 +201,14 @@ class SikLayagApiTests(unittest.TestCase):
                         "authors": [{"name": "Author"}],
                         "year": 2024,
                         "venue": "Research Journal",
+                        "journal": {
+                            "name": "Research Journal",
+                            "volume": "12",
+                            "issue": "3",
+                            "pages": "34-45",
+                        },
+                        "externalIds": {"DOI": "10.1234/example"},
+                        "publicationTypes": ["JournalArticle"],
                         "citationCount": 12,
                         "url": "https://www.semanticscholar.org/paper/id",
                     }
@@ -203,11 +229,26 @@ class SikLayagApiTests(unittest.TestCase):
                 "authors",
                 "year",
                 "venue",
+                "volume",
+                "issue",
+                "pages",
+                "doi",
+                "publication_types",
                 "citation_count",
                 "url",
+                "citations",
             },
         )
         self.assertEqual(result["results"][0]["abstract"], "A study of this research topic.")
+        self.assertEqual(result["results"][0]["volume"], "12")
+        self.assertEqual(result["results"][0]["issue"], "3")
+        self.assertEqual(result["results"][0]["pages"], "34-45")
+        self.assertEqual(result["results"][0]["doi"], "10.1234/example")
+        self.assertEqual(result["results"][0]["publication_types"], ["JournalArticle"])
+        self.assertEqual(
+            result["results"][0]["citations"]["parenthetical"],
+            "(Author, 2024)",
+        )
         self.assertTrue(result["results"][0]["url"].startswith("https://"))
 
     @patch("app.urlopen")
@@ -224,8 +265,14 @@ class SikLayagApiTests(unittest.TestCase):
         self.assertEqual(paper["authors"], [])
         self.assertIsNone(paper["year"])
         self.assertIsNone(paper["venue"])
+        self.assertIsNone(paper["volume"])
+        self.assertIsNone(paper["issue"])
+        self.assertIsNone(paper["pages"])
+        self.assertIsNone(paper["doi"])
+        self.assertEqual(paper["publication_types"], [])
         self.assertIsNone(paper["citation_count"])
         self.assertIsNone(paper["url"])
+        self.assertEqual(paper["citations"]["narrative"], '"[Title unavailable]" (n.d.)')
 
     @patch.dict(os.environ, {"SEMANTIC_SCHOLAR_API_KEY": ""})
     @patch("app.urlopen")
@@ -256,6 +303,9 @@ class SikLayagApiTests(unittest.TestCase):
         self.assertIn("offset=0", request.full_url)
         self.assertIn("year=2020-2024", request.full_url)
         self.assertIn("abstract", request.full_url)
+        self.assertIn("journal", request.full_url)
+        self.assertIn("externalIds", request.full_url)
+        self.assertIn("publicationTypes", request.full_url)
         self.assertNotIn("x-api-key", request.headers)
         self.assertEqual(len(result["results"]), 10)
         self.assertTrue(result["has_more"])

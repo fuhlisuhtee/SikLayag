@@ -24,8 +24,9 @@ Video content is still a prototype placeholder.
 
 Searches academic papers using keywords and optional publication-year filters
 through the **Semantic Scholar Academic Graph API**. The first version shows up
-to five relevant results with the paper title, authors, publication year, and a
-link to the paper.
+to ten relevant results per page with paper metadata, abstracts, and a link to
+the paper. Each result can preview and copy an APA 7 narrative, parenthetical,
+or reference-list citation.
 
 ### 3. Mga Kabanata
 
@@ -137,6 +138,12 @@ Check the browser JavaScript syntax with:
 node --check static\app.js
 ```
 
+Run the APA citation formatting and copy tests with:
+
+```powershell
+node --test tests\test_citations.js
+```
+
 ## API Integration
 
 The Flask server calls the Semantic Scholar Academic Graph API so the API key
@@ -146,10 +153,22 @@ search pages in the Flask process for five minutes to reduce repeated requests.
 Paper metadata is normalized when Semantic Scholar omits titles, abstracts,
 authors, publication details, or links. The frontend displays abstracts and
 provides a Load More button rather than fetching all matches at once.
+Each result includes citation-type selectors that reveal the full citation
+preview and a separate Copy button. Clipboard copying uses the Clipboard API
+when available and falls back to a plain-text copy for local HTTP/LAN access.
+APA 7 journal reference formatting is
+implemented in `citation_generator.py`; the API requests publication type,
+journal, DOI, and citation-count metadata. Missing publication years use APA's
+`n.d.`, and missing authors use the title in the author position. Generated
+citations should still be verified against the original source.
 Provider requests are serialized and spaced at least 1.1 seconds apart to stay
 below the API key's one-request-per-second limit. Identical concurrent cache
 misses are coalesced, and the configured Gunicorn setup uses one worker with
 multiple threads so requests in that deployment share the same limiter.
+After a provider rate-limit response, the search button enforces a five-second
+cooldown, honors `Retry-After` when supplied, and increases the delay on
+repeated rate-limit responses up to 30 seconds. A successful search resets the
+backoff.
 
 The limiter and cache are process-local. Keep the app to one instance to
 preserve the provider limit; if deploying multiple instances, use a shared

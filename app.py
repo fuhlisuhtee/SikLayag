@@ -4,12 +4,14 @@ import socket
 import threading
 import time
 from collections import OrderedDict
-from datetime import date
+from datetime import date, datetime, timezone
+from email.utils import parsedate_to_datetime
 from http.client import HTTPException
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
+from citation_generator import generate_apa7_citations
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 
@@ -33,9 +35,28 @@ _next_provider_request_at = 0.0
 
 
 class SemanticScholarError(Exception):
-    def __init__(self, message, status_code=502):
+    def __init__(self, message, status_code=502, retry_after=None):
         super().__init__(message)
         self.status_code = status_code
+        self.retry_after = retry_after
+
+
+def _retry_after_seconds(value):
+    if not value:
+        return None
+    try:
+        return max(0, int(float(value)))
+    except (ValueError, OverflowError):
+        try:
+            retry_at = parsedate_to_datetime(value)
+            if retry_at.tzinfo is None:
+                retry_at = retry_at.replace(tzinfo=timezone.utc)
+            return max(
+                0,
+                int((retry_at - datetime.now(timezone.utc)).total_seconds()),
+            )
+        except (TypeError, ValueError, OverflowError):
+            return None
 
 
 def search_papers(query, start_year=None, end_year=None, offset=0):
@@ -45,7 +66,10 @@ def search_papers(query, start_year=None, end_year=None, offset=0):
         "query": query,
         "limit": SEARCH_RESULT_LIMIT,
         "offset": offset,
-        "fields": "paperId,title,abstract,authors,year,url,venue,citationCount",
+        "fields": (
+            "paperId,title,abstract,authors,year,url,venue,citationCount,"
+            "journal,externalIds,publicationTypes"
+        ),
     }
     if start_year is not None or end_year is not None:
         first_year = start_year if start_year is not None else 1800
@@ -76,7 +100,11 @@ def search_papers(query, start_year=None, end_year=None, offset=0):
     except HTTPError as error:
         if error.code == 429:
             raise SemanticScholarError(
-                "Search service is busy; try again shortly.", 503
+                "Search service is busy; try again shortly.",
+                503,
+                retry_after=_retry_after_seconds(
+                    error.headers.get("Retry-After") if error.headers else None
+                ),
             ) from error
         raise SemanticScholarError(
             "Search is temporarily unavailable. Please try again later.", 502
@@ -142,35 +170,82 @@ def search_papers(query, start_year=None, end_year=None, offset=0):
         abstract = paper.get("abstract")
         venue = paper.get("venue")
         citation_count = paper.get("citationCount")
-        results.append(
-            {
-                "title": (
-                    title.strip()
-                    if isinstance(title, str) and title.strip()
-                    else "Title unavailable"
-                ),
-                "abstract": (
-                    abstract.strip()
-                    if isinstance(abstract, str) and abstract.strip()
-                    else None
-                ),
-                "authors": normalized_authors,
-                "year": (
-                    paper.get("year")
-                    if isinstance(paper.get("year"), int)
-                    else None
-                ),
-                "venue": (
-                    venue.strip()
-                    if isinstance(venue, str) and venue.strip()
-                    else None
-                ),
-                "citation_count": (
-                    citation_count if isinstance(citation_count, int) else None
-                ),
-                "url": paper_url,
-            }
-        )
+        journal = paper.get("journal")
+        if not isinstance(journal, dict):
+            journal = {}
+        journal_name = journal.get("name")
+        journal_issue = journal.get("issue")
+        external_ids = paper.get("externalIds")
+        if not isinstance(external_ids, dict):
+            external_ids = {}
+        doi = external_ids.get("DOI")
+        if isinstance(doi, str):
+            doi = doi.strip()
+            doi = doi.removeprefix("https://doi.org/").removeprefix("http://doi.org/")
+        else:
+            doi = None
+        publication_types = paper.get("publicationTypes")
+        if not isinstance(publication_types, list):
+            publication_types = []
+        normalized_publication_types = [
+            publication_type.strip()
+            for publication_type in publication_types
+            if isinstance(publication_type, str) and publication_type.strip()
+        ]
+        normalized_paper = {
+            "title": (
+                title.strip()
+                if isinstance(title, str) and title.strip()
+                else "Title unavailable"
+            ),
+            "abstract": (
+                abstract.strip()
+                if isinstance(abstract, str) and abstract.strip()
+                else None
+            ),
+            "authors": normalized_authors,
+            "year": (
+                paper.get("year")
+                if isinstance(paper.get("year"), int)
+                and not isinstance(paper.get("year"), bool)
+                else None
+            ),
+            "venue": (
+                journal_name.strip()
+                if isinstance(journal_name, str) and journal_name.strip()
+                else venue.strip()
+                if isinstance(venue, str) and venue.strip()
+                else None
+            ),
+            "volume": (
+                journal["volume"]
+                if isinstance(journal.get("volume"), str)
+                and journal["volume"].strip()
+                else None
+            ),
+            "issue": (
+                journal_issue.strip()
+                if isinstance(journal_issue, str) and journal_issue.strip()
+                else None
+            ),
+            "pages": (
+                journal["pages"]
+                if isinstance(journal.get("pages"), str)
+                and journal["pages"].strip()
+                else None
+            ),
+            "doi": doi or None,
+            "publication_types": normalized_publication_types,
+            "citation_count": (
+                citation_count
+                if isinstance(citation_count, int)
+                and not isinstance(citation_count, bool)
+                else None
+            ),
+            "url": paper_url,
+        }
+        normalized_paper["citations"] = generate_apa7_citations(normalized_paper)
+        results.append(normalized_paper)
         if len(results) == SEARCH_RESULT_LIMIT:
             break
 
@@ -283,7 +358,10 @@ def api_search():
         )
     except SemanticScholarError as error:
         app.logger.warning("Semantic Scholar search failed: %s", error)
-        return jsonify({"error": str(error)}), error.status_code
+        response = jsonify({"error": str(error)})
+        if error.retry_after is not None:
+            response.headers["Retry-After"] = str(error.retry_after)
+        return response, error.status_code
 
 
 @app.post("/api/seeky")
